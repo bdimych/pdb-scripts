@@ -32,7 +32,6 @@ echo
 password=$(echo "$packagename" | bash "$password_script")
 password_check || error password check failed
 
-echo
 set -x
 : =================================== make and test archive: ======================================= # {{{
 :
