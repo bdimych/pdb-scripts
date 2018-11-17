@@ -73,12 +73,15 @@ find .. -printf '%-10u %-10g %M %10s %TY-%Tm-%Td %.8TT %y%Y ' -and '(' -type l -
 
 ====================================================================================================
 
-archive: $(ls -l "$packagename.7z"):
-$(7z l -p$password "$packagename.7z" | grep -v '^$')
+archive:
+$(ls -l "$packagename.7z"):
+-----
+$(7z l -p$password "$packagename.7z")
 
 ====================================================================================================
 
-pdb message: $(ls -l ../pdb-message.txt):
+pdb message:
+$(ls -l ../pdb-message.txt):
 -----
 $(< ../pdb-message.txt)
 
