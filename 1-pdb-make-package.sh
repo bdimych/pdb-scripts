@@ -107,7 +107,7 @@ $encrypted_msg
 ====================================================================================================
 }}}
 "
-echo ok, package has been created,
+echo ok, package "\"$packagename\"" has been created,
 echo now you can run pdb-start-upload script.
 echo
 log package status: package-created
