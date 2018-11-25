@@ -6,10 +6,12 @@
 # TODO: useful commands
 # }}}
 
+# TODO: check single instance
+
 node_ip=127.0.0.1
 updir=/home/???/frd/uploads
 file_max_size=5G # see man find and man split
-uploads_max_size=$(( 7.5*1024*1024*1024 ))
+uploads_max_size=8100200300
 sleep=100
 
 function mydate { date +%F-%T; }
