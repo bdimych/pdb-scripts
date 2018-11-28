@@ -46,7 +46,7 @@ do
 		warning wget uploads failed
 		continue
 	fi
-	sed -i -e 's/^[[:blank:]]*//' $tempfile
+	sed -i -e 's/^[[:blank:]]*//' $tempfile || continue # no space left is possible
 	grep failed-upload $tempfile && warning failed uploads found
 	if ! perl -n -e 'if (/<input.+name="size-\d+".+value="(\d+)"/) {print "$&\n"; $sum+=$1}; END {print "sum=$sum\n"; exit 1 if $sum > '$uploads_max_size'}' <$tempfile
 	then
