@@ -10,9 +10,9 @@ function tee_progress {
 		local f="${1%.7z}-in-progress.txt"
 		if [[ $copy_progress_files_to ]]
 		then
-			tee -a "$f" "$copy_progress_files_to/${f##*/}"
+			tee -i -a "$f" "$copy_progress_files_to/${f##*/}"
 		else
-			tee -a "$f"
+			tee -i -a "$f"
 		fi
 	else
 		echo -n | tee_progress "$1" yes || error tee_progress failure
