@@ -84,6 +84,7 @@ do
 		{
 			echo -e '\nClientHello\nName=pdb-freenet-upload-starter\nExpectedVersion=2.0\nEndMessage\n'
 			command sleep 1
+			# TODO: before ClientPut make TestDDARequest or check "Assume that upload DDA is allowed" is set,
 			echo -e "\nClientPut\nIdentifier=$name_md5\nFilename=$f"
 			echo -e 'UploadFrom=disk\nMaxRetries=10\nPriorityClass=4\nURI=CHK@\nDontCompress=true\nGlobal=true\nPersistence=forever\nEarlyEncode=true\nEndMessage\n'
 			command sleep 1
