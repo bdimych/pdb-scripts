@@ -101,7 +101,7 @@ $encrypted_msg
 "
 # TODO: show memorable ascii art text box
 echo ok, package "\"$packagename\"" has been created,
-echo now you can run pdb-start-upload script.
+echo now you can run pdb-2-upload-to-vps.sh script.
 echo
 log package status: package-created
 echo
