@@ -60,7 +60,7 @@ do
 	do
 		warning split big file
 		ls -l "$f"
-		if ! split --verbose -b $file_max_size -d "$f" "$f".
+		if ! split --verbose -b $file_max_size -d "$f" "$f". # TODO: ?compare md5sum? or not necessary?
 		then
 			warning split failed
 			continue 2

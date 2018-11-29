@@ -19,6 +19,7 @@ srcdir="${1%/}"
 ls -lh "$srcdir" || error usage: ${0##*/} source-directory
 (( $(stat -c%s "$srcdir/pdb-message.txt") > 40 )) || error pdb-message.txt is absent or too short
 cd "$srcdir"
+cat pdb-message.txt
 packagename="$(basename "${PWD%"$saved_suffix"}")-$(date +%y%m%d-%H%M%S)"
 
 echo
@@ -89,7 +90,7 @@ $(< ../pdb-message.txt)
 
 message for blockchains:
 -----
-$(ls -Q --quoting-style shell "$packagename.7z")  $(stat -c%s "$packagename.7z")  $md5_archive
+$(ls --quoting-style shell "$packagename.7z")  $(stat -c%s "$packagename.7z")  $md5_archive
 add-chk-here
 $encrypted_msg
 -----
