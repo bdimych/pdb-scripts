@@ -58,16 +58,7 @@ set +x
 # }}}
 
 echo
-function tee_progress {
-	if [[ $copy_progress_files_to ]]
-	then
-		tee "$packagename-in-progress.txt" "$copy_progress_files_to/$packagename-in-progress.txt"
-	else
-		tee "$packagename-in-progress.txt"
-	fi
-}
-echo -n | tee_progress
-exec > >(tee_progress) 2>&1
+tee_progress "$packagename"
 echo "====================================================================================================
 =============== Package \"$packagename\" has been created: =============== {{{
 ====================================================================================================
