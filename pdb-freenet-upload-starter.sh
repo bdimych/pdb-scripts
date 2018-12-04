@@ -48,6 +48,7 @@ do
 	fi
 	sed -i -e 's/^[[:blank:]]*//' $tempfile || continue # no space left is possible
 	grep failed-upload $tempfile && warning failed uploads found
+	grep '^STARTING$' $tempfile && continue # when upload is STARTING freenet doesn't do anything else
 	if ! perl -ne 'if ((/<form.+uncompleted/../form>/) && /size-\d+".+value="(\d+)"/) {print "$&\n"; $sum+=$1; exit 1 if $sum > '$uploads_max_size'}' <$tempfile
 	then
 		warning uploads_max_size exceeded
