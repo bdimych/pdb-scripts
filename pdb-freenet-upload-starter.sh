@@ -48,7 +48,7 @@ do
 	fi
 	sed -i -e 's/^[[:blank:]]*//' $tempfile || continue # no space left is possible
 	grep failed-upload $tempfile && warning failed uploads found
-	if ! perl -n -e 'if (/<input.+name="size-\d+".+value="(\d+)"/) {print "$&\n"; $sum+=$1}; END {print "sum=$sum\n"; exit 1 if $sum > '$uploads_max_size'}' <$tempfile
+	if ! perl -ne 'if ((/<form.+uncompleted/../form>/) && /size-\d+".+value="(\d+)"/) {print "$&\n"; $sum+=$1; exit 1 if $sum > '$uploads_max_size'}' <$tempfile
 	then
 		warning uploads_max_size exceeded
 		continue
@@ -73,7 +73,7 @@ do
 	# start upload {{{
 	while read f
 	do
-		name_md5=$(md5sum <<<"$f" | tr -d ' -')
+		name_md5=$(md5sum <<<"${f##*/}" | tr -d ' -')
 		log name_md5: "$f": $name_md5
 		if grep $name_md5 $tempfile
 		then
