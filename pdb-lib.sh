@@ -1,8 +1,8 @@
 
 function mydate { date +%F-%T; }
-function log { echo $(mydate): LOG: "$@"; }
-function error { echo $(mydate): ERROR: "$@"; exit 1; }
-function warning { echo $(mydate): WARNING: "$@"; }
+function log { echo -e $(mydate): LOG: "$@"; }
+function error { echo -e $(mydate): ERROR: "$@"; exit 1; }
+function warning { echo -e $(mydate): WARNING: "$@"; }
 
 function tee_progress {
 	if [[ $2 == yes ]]
