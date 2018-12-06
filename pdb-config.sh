@@ -14,3 +14,5 @@ vps_uploads_dir=/home/bdimych/frd/uploads
 filelist_local=/home/bdimych/tl-my/bdimych-text-git/2/pdb/Storage/pdbs-180919-my-files.txt
 filelist_vps=/home/bdimych/pdbs-180919-my-files.txt
 
+local_packages_dir=/home/bdimych/tl-big/MyPDB
+
