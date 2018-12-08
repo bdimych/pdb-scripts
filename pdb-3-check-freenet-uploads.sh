@@ -50,7 +50,7 @@ echo
 
 declare -i parts_count parts_done
 declare -A part_progress
-declare errors chk
+declare errors_found chk
 for pf in "${!pfiles[@]}"
 do
 	echo '##################################################'
@@ -63,7 +63,7 @@ do
 			parts_count+=1
 			echo -------------------- part $parts_count: ---------------------
 			part_progress=()
-			errors=
+			errors_found=
 			chk=
 
 		elif [[ $parts_count == 0 ]]; then
@@ -86,13 +86,13 @@ do
 			echo upload fatal error
 
 		elif perl -ne '!/^\w*Filename=/ && /error/i || exit 1' <<<"$x"; then
-			errors=1
+			errors_found=1
 			let statistics[errors]+=1
 			echo upload error found: "$x"
 
 		elif [[ "$x" =~ URI=(CHK@.{43},.{43},AAMC--8) && ! $chk ]]; then
 			chk="${BASH_REMATCH[1]}"
-			# TODO: get ssh md5sum and add file to files.txt
+			# TODO: get ssh md5sum - add file to files.txt - and rsync files.txt to vps
 			let statistics[chk]+=1
 			echo chk found
 
@@ -118,4 +118,5 @@ do
 done
 
 declare -p statistics
+# TODO: print statistics
 
