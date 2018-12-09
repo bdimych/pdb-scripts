@@ -49,23 +49,29 @@ echo
 # }}}
 
 declare -i parts_count parts_done
-declare -A part_progress
-declare errors_found chk status
+declare status errors_found chk DataLength Succeeded Total LastProgress
+function print_part_stats {
+	local stats=
+	[[ $DataLength ]] && stats+="size: $(( DataLength/1024/1024 )) Mb; "
+	[[ $Succeeded && $Total ]] && stats+="ready: $(( Succeeded*100/Total ))%; "
+	[[ $LastProgress ]] && stats+="LastProgress: $(( ($(date +%s) - LastProgress/1000)/60 )) minutes ago;"
+	[[ $stats ]] && echo "$stats"
+	return 0
+}
 for pf in "${!pfiles[@]}"
 do
 	echo '##################################################'
-	echo "${pf##*/}"
+	echo "$pf"
 	parts_count=0
 	parts_done=0
 	status=freenet-upload
 	cat "$pf" | while read -r x
 	do
 		if [[ "$x" =~ "check-freenet-uploads session $session" ]]; then
+			print_part_stats
 			parts_count+=1
-			echo -------------------- part $parts_count: ---------------------
-			part_progress=()
-			errors_found=
-			chk=
+			echo ---------- part $parts_count: ----------
+			unset errors_found chk DataLength Succeeded Total LastProgress
 
 		elif [[ $parts_count == 0 ]]; then
 			continue
@@ -89,21 +95,21 @@ do
 			status+=-fatal
 			echo upload fatal error
 
-		elif perl -ne '!/^\w*Filename=/ && /error/i || exit 1' <<<"$x"; then
+		elif perl -ne '!/^\w*Filename=/ && /error|PutFailed/i || exit 1' <<<"$x"; then
 			errors_found=1
 			let statistics[errors]+=1
 			status+=-errors
-			echo upload error found: "$x"
+			echo upload error: "$x"
 
 		elif [[ "$x" =~ URI=(CHK@.{43},.{43},AAMC--8) && ! $chk ]]; then
 			chk="${BASH_REMATCH[1]}"
 			# TODO: get ssh md5sum - add file to files.txt - and rsync files.txt to vps
 			let statistics[chk]+=1
 			status+=-chk
-			echo chk found
+			echo chk is present
 
-		elif [[ "$x" =~ ^(DataLength|Succeeded|Total|LastProgress)=(.+) ]]; then
-			part_progress[${BASH_REMATCH[1]}]=${BASH_REMATCH[2]}
+		elif [[ "$x" =~ ^(DataLength|Succeeded|Total|LastProgress)= ]]; then
+			eval $x
 
 		elif [[ "$x" == PutSuccessful ]]; then
 			# TODO: ssh mv from uploads dir to completed dir
@@ -114,12 +120,14 @@ do
 
 		fi
 	done
+	print_part_stats
 	if [[ $parts_count == $parts_done ]]
 	then
 		:
 		# TODO: ??? what to do if all parts done ???
 	fi
 	# TODO: calculate progress
+	echo '====== package status: ======'
 	log package status: $status | tee -a "$pf"
 	echo
 done
