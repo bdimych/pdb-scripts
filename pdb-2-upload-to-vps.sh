@@ -49,6 +49,7 @@ grep -m1 $file_md5 "${file%.7z}-in-progress.txt" || error md5 is absent in the p
 function kill_rsyncs {
 	$vps_ssh_command $vps_ssh_connection_string killall -v rsync || [[ 1 ]]
 }
+# TODO: ??? "printf %q" instead of "ls --quoting-style" ???
 vpsfile="$vps_uploads_dir/$(cd "$(dirname "$file")"; ls --quoting-style shell "$(basename "$file")")"
 trap 'error INT signal caught' INT
 for i in {1..10}

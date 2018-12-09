@@ -99,6 +99,7 @@ $encrypted_msg
 ====================================================================================================
 }}}
 "
+# TODO: ??? above "printf %q" instead of "ls --quoting-style" ???
 # TODO: show memorable ascii art text box
 echo ok, package "\"$packagename\"" has been created,
 echo now you can run pdb-2-upload-to-vps.sh script.
