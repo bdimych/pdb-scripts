@@ -50,13 +50,14 @@ echo
 
 declare -i parts_count parts_done
 declare -A part_progress
-declare errors_found chk
+declare errors_found chk status
 for pf in "${!pfiles[@]}"
 do
 	echo '##################################################'
 	echo "${pf##*/}"
 	parts_count=0
 	parts_done=0
+	status=freenet-upload
 	cat "$pf" | while read -r x
 	do
 		if [[ "$x" =~ "check-freenet-uploads session $session" ]]; then
@@ -75,25 +76,30 @@ do
 
 		elif [[ "$x" == 'CodeDescription=No such identifier' ]]; then
 			let statistics[not-yet-added]+=1
+			status+=-pending
 			echo not yet added to uploads
 
 		elif [[ "$x" == 'Started=true' ]]; then
 			let statistics[started]+=1
+			status+=-started
 			echo upload started
 
 		elif [[ "$x" == 'Fatal=true' ]]; then
 			let statistics[fatal]+=1
+			status+=-fatal
 			echo upload fatal error
 
 		elif perl -ne '!/^\w*Filename=/ && /error/i || exit 1' <<<"$x"; then
 			errors_found=1
 			let statistics[errors]+=1
+			status+=-errors
 			echo upload error found: "$x"
 
 		elif [[ "$x" =~ URI=(CHK@.{43},.{43},AAMC--8) && ! $chk ]]; then
 			chk="${BASH_REMATCH[1]}"
 			# TODO: get ssh md5sum - add file to files.txt - and rsync files.txt to vps
 			let statistics[chk]+=1
+			status+=-chk
 			echo chk found
 
 		elif [[ "$x" =~ ^(DataLength|Succeeded|Total|LastProgress)=(.+) ]]; then
@@ -102,6 +108,7 @@ do
 		elif [[ "$x" == PutSuccessful ]]; then
 			# TODO: ssh mv from uploads dir to completed dir
 			let statistics[upload-done]+=1
+			status+=-done
 			parts_done+=1
 			echo upload done
 
@@ -113,7 +120,7 @@ do
 		# TODO: ??? what to do if all parts done ???
 	fi
 	# TODO: calculate progress
-	# TODO: print status to $pf
+	log package status: $status | tee -a "$pf"
 	echo
 done
 
