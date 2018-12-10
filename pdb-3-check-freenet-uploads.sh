@@ -17,20 +17,29 @@ shopt -s lastpipe
 declare -A pfiles statistics
 
 # get current uploads information: {{{
-$vps_ssh_command $vps_ssh_connection_string find "'$vps_uploads_dir'" -type f -name "'*.7z*'" | while read f
+$vps_ssh_command $vps_ssh_connection_string find "'$vps_uploads_dir'" -type f -name "'*.7z*'" -printf "'%s %p\n'" | while read size f
 do
-	let statistics[uploads-files-count]+=1
 	echo '@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@'
 	log file: "$f"
-	f="${f##*/}"
-	name_md5=$(md5sum <<<"$f" | tr -d ' -')
-	log name_md5: $name_md5
-	[[ "$f" =~ ^(.+)\.7z ]]
-	base="${BASH_REMATCH[1]}"
-	pf=$(find "$local_packages_dir" -name "$base-in-progress.txt")
+	log size: $size
+	if ! [[ "$f" =~ .+/(.+)\.7z($|\.[0-9][0-9]$) ]]
+	then
+		let statistics[unrecognized-files]+=1
+		let statistics[unrecognized-files-size]+=$size
+		warning skip unrecognized name
+		continue
+	fi
+	let statistics[files]+=1
+	let statistics[files-size]+=$size
+
+	pf=$(find "$local_packages_dir" -name "${BASH_REMATCH[1]}-in-progress.txt")
 	[[ $pf ]] || error could not find progress file
 	log progress file: "$pf"
 	pfiles["$pf"]=1
+
+	name_md5=$(md5sum <<<"${f##*/}" | tr -d ' -')
+	log name_md5: $name_md5
+
 	echo "--------------------------------------------------
 $(mydate) check-freenet-uploads session $session:
 File: $f" >>"$pf"
@@ -65,6 +74,7 @@ do
 	parts_count=0
 	parts_done=0
 	status=freenet-upload
+	unset errors_found chk DataLength Succeeded Total LastProgress
 	cat "$pf" | while read -r x
 	do
 		if [[ "$x" =~ "check-freenet-uploads session $session" ]]; then
@@ -83,19 +93,16 @@ do
 		elif [[ "$x" == 'CodeDescription=No such identifier' ]]; then
 			let statistics[not-yet-added]+=1
 			status+=-pending
-			echo not yet added to uploads
 
 		elif [[ "$x" == 'Started=true' ]]; then
 			let statistics[started]+=1
 			status+=-started
-			echo upload started
 
 		elif [[ "$x" == 'Fatal=true' ]]; then
 			let statistics[fatal]+=1
 			status+=-fatal
-			echo upload fatal error
 
-		elif perl -ne '!/^\w*Filename=/ && /error|PutFailed/i || exit 1' <<<"$x"; then
+		elif perl -ne '!/^\w*Filename=/ && /error|PutFailed|Description/i || exit 1' <<<"$x"; then
 			errors_found=1
 			let statistics[errors]+=1
 			status+=-errors
@@ -106,17 +113,17 @@ do
 			# TODO: get ssh md5sum - add file to files.txt - and rsync files.txt to vps
 			let statistics[chk]+=1
 			status+=-chk
-			echo chk is present
+			echo chk found
 
 		elif [[ "$x" =~ ^(DataLength|Succeeded|Total|LastProgress)= ]]; then
 			eval $x
 
 		elif [[ "$x" == PutSuccessful ]]; then
 			# TODO: ssh mv from uploads dir to completed dir
-			let statistics[upload-done]+=1
+			let statistics[done]+=1
 			status+=-done
 			parts_done+=1
-			echo upload done
+			echo upload done!
 
 		fi
 	done
