@@ -101,12 +101,13 @@ do
 		elif [[ "$x" == 'Fatal=true' ]]; then
 			let statistics[fatal]+=1
 			status+=-fatal
+			echo fatal error
 
 		elif perl -ne '!/^\w*Filename=/ && /error|PutFailed|Description/i || exit 1' <<<"$x"; then
 			errors_found=1
 			let statistics[errors]+=1
 			status+=-errors
-			echo upload error: "$x"
+			echo error: "$x"
 
 		elif [[ "$x" =~ URI=(CHK@.{43},.{43},AAMC--8) && ! $chk ]]; then
 			chk="${BASH_REMATCH[1]}"
