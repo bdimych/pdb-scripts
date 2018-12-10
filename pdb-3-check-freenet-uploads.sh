@@ -67,7 +67,7 @@ function print_part_stats {
 	[[ $stats ]] && echo "$stats"
 	return 0
 }
-for pf in "${!pfiles[@]}"
+for pf in "${!pfiles[@]}" # {{{
 do
 	echo '##################################################'
 	echo "$pf"
@@ -88,7 +88,7 @@ do
 
 		elif [[ "$x" =~ File:\ (.+) ]]; then
 			f="${BASH_REMATCH[1]}"
-			echo file: "$f"
+			echo "$f"
 
 		elif [[ "$x" == 'CodeDescription=No such identifier' ]]; then
 			let statistics[not-yet-added]+=1
@@ -111,16 +111,35 @@ do
 
 		elif [[ "$x" =~ URI=(CHK@.{43},.{43},AAMC--8) && ! $chk ]]; then
 			chk="${BASH_REMATCH[1]}"
-			# TODO: get ssh md5sum - add file to files.txt - and rsync files.txt to vps
 			let statistics[chk]+=1
-			status+=-chk
-			echo chk found
+			if grep -F "$chk" "$filelist_local" >/dev/null 2>&1
+			then
+				status+=-chk
+				echo chk is already present in the file list
+			else
+				# "ssh </dev/null" is necessary inside "while read" or some segfaults happen (?probably because of sshpass?),
+				echo new chk found
+				echo $(date +%T) calculating md5 "(can take long time ($(( DataLength/1024/1024 )) Mb))..."
+				md5=$($vps_ssh_command $vps_ssh_connection_string md5sum "$(printf %q "$f")" </dev/null | cut -b 1-32)
+				echo $(date +%T) ok, updating file list...
+				echo "# added at $(mydate) by $0" >>"$filelist_local"
+				echo \
+"files+=(
+	$(printf %q "${f##*/}")  $DataLength  $md5
+	$chk
+)" | tee -a "$filelist_local"
+				$vps_ssh_command $vps_ssh_connection_string killall -v rsync </dev/null || [[ 1 ]]
+				rsync --progress --compress --timeout=10 -e "$vps_ssh_command" "$filelist_local" "$vps_ssh_connection_string:$filelist_vps" </dev/null
+				echo $(date +%T) ok, filelist updated,
+				let statistics[new-chk]+=1
+				status+=-newchk
+			fi
 
 		elif [[ "$x" =~ ^(DataLength|Succeeded|Total|LastProgress)= ]]; then
 			eval $x
 
 		elif [[ "$x" == PutSuccessful ]]; then
-			# TODO: ssh mv from uploads dir to completed dir
+			# TODO: ssh mv from uploads/ dir to completed/ dir and remove from freenet uploads
 			let statistics[done]+=1
 			status+=-done
 			parts_done+=1
@@ -139,6 +158,7 @@ do
 	log package status: $status | tee -a "$pf"
 	echo
 done
+# }}}
 
 declare -p statistics
 # TODO: print statistics
