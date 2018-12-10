@@ -112,7 +112,7 @@ do
 		elif [[ "$x" =~ URI=(CHK@.{43},.{43},AAMC--8) && ! $chk ]]; then
 			chk="${BASH_REMATCH[1]}"
 			let statistics[chk]+=1
-			if grep -F "$chk" "$filelist_local" >/dev/null 2>&1
+			if grep -F "$chk" "$filelist_local" >/dev/null
 			then
 				status+=-chk
 				echo chk is already present in the file list
