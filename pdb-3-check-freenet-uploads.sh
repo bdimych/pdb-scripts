@@ -17,7 +17,7 @@ shopt -s lastpipe
 declare -A pfiles statistics
 
 # get current uploads information: {{{
-$vps_ssh_command $vps_ssh_connection_string find "'$vps_uploads_dir'" -type f -name "'*.7z*'" -printf "'%s %p\n'" | while read size f
+$vps_ssh_command $vps_ssh_connection_string find "'$vps_uploads_dir'" -type f -name "'*.7z*'" -printf "'%s %p\n'" | sort -k2 | while read size f
 do
 	echo '@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@'
 	log file: "$f"
@@ -64,7 +64,7 @@ function print_part_stats {
 	[[ $DataLength ]] && stats+="size: $(( DataLength/1024/1024 )) Mb; "
 	[[ $Succeeded && $Total ]] && stats+="ready: $(( Succeeded*100/Total ))%; "
 	[[ $LastProgress ]] && stats+="LastProgress: $(( ($(date +%s) - LastProgress/1000)/60 )) minutes ago;"
-	[[ $stats ]] && echo "$stats"
+	[[ $stats ]] && echo "part_stats: $stats"
 	return 0
 }
 for pf in "${!pfiles[@]}" # {{{
@@ -75,7 +75,8 @@ do
 	parts_done=0
 	status=freenet-upload
 	unset errors_found chk DataLength Succeeded Total LastProgress
-	cat "$pf" | while read -r x
+	exec 3<"$pf"
+	while read -u3 -r x # {{{
 	do
 		if [[ "$x" =~ "check-freenet-uploads session $session" ]]; then
 			print_part_stats
@@ -116,23 +117,20 @@ do
 			then
 				status+=-chk
 				echo chk is already present in the file list
-			else
-				# "ssh </dev/null" is necessary inside "while read" or some segfaults happen (?probably because of sshpass?),
+
+			else # update file list: {{{
 				echo new chk found
 				echo $(date +%T) calculating md5 "(can take long time ($(( DataLength/1024/1024 )) Mb))..."
-				md5=$($vps_ssh_command $vps_ssh_connection_string md5sum "$(printf %q "$f")" </dev/null | cut -b 1-32)
+				md5=$($vps_ssh_command $vps_ssh_connection_string md5sum "$(printf %q "$f")" | cut -b 1-32)
 				echo $(date +%T) ok, updating file list...
 				echo "# added at $(mydate) by $0" >>"$filelist_local"
-				echo \
-"files+=(
-	$(printf %q "${f##*/}")  $DataLength  $md5
-	$chk
-)" | tee -a "$filelist_local"
-				$vps_ssh_command $vps_ssh_connection_string killall -v rsync </dev/null || [[ 1 ]]
-				rsync --progress --compress --timeout=10 -e "$vps_ssh_command" "$filelist_local" "$vps_ssh_connection_string:$filelist_vps" </dev/null
+				echo -e "files+=(\n  $(printf %q "${f##*/}")  $DataLength  $md5\n  $chk\n)" | tee -a "$filelist_local"
+				echo >>"$filelist_local"
+				rsync --progress --compress --timeout=10 -e "$vps_ssh_command" "$filelist_local" "$vps_ssh_connection_string:$filelist_vps"
 				echo $(date +%T) ok, filelist updated,
 				let statistics[new-chk]+=1
 				status+=-newchk
+				# }}}
 			fi
 
 		elif [[ "$x" =~ ^(DataLength|Succeeded|Total|LastProgress)= ]]; then
@@ -146,7 +144,7 @@ do
 			echo upload done!
 
 		fi
-	done
+	done # end "while read" loop }}}
 	print_part_stats
 	if [[ $parts_count == $parts_done ]]
 	then
