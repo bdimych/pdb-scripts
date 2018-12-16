@@ -17,6 +17,9 @@ shopt -s lastpipe
 declare -A pfiles statistics
 
 # get current uploads information: {{{
+function name_md5 {
+	echo $(md5sum <<<"${f##*/}" | tr -d ' -')
+}
 $vps_ssh_command $vps_ssh_connection_string find "'$vps_uploads_dir'" -type f -name "'*.7z*'" -printf "'%s %p\n'" | sort -k2 | while read size f
 do
 	echo '@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@'
@@ -35,10 +38,9 @@ do
 	pf=$(find "$local_packages_dir" -name "${BASH_REMATCH[1]}-in-progress.txt")
 	[[ $pf ]] || error could not find progress file
 	log progress file: "$pf"
-	pfiles["$pf"]=1
+	pfiles["$pf"]=$(( ${pfiles["$pf"]} + 1 ))
 
-	name_md5=$(md5sum <<<"${f##*/}" | tr -d ' -')
-	log name_md5: $name_md5
+	log name_md5: $(name_md5)
 
 	echo "--------------------------------------------------
 $(mydate) check-freenet-uploads session $session:
@@ -47,17 +49,24 @@ File: $f" >>"$pf"
 set -e
 exec 3<>/dev/tcp/127.0.0.1/9481
 echo -e 'ClientHello\nName=pdb-3-check-freenet-uploads.sh\nExpectedVersion=2.0\nEndMessage' >&3
-echo -e 'GetRequestStatus\nIdentifier=$name_md5\nGlobal=true\nEndMessage' >&3
-while [[ 1 ]]; do read -u3 -t1 x || break; echo \"\$x\"; done
+echo -e 'GetRequestStatus\nIdentifier=$(name_md5)\nGlobal=true\nEndMessage' >&3
+while [[ 1 ]]; do read -u3 -t3 x || break; echo \"\$x\"; lastx=\"\$x\"; done
+[[ \"\$lastx\" == EndMessage ]] || { echo something was wrong with fcp: \$lastx; exit 1; }
 echo -e 'Disconnect\nEndMessage' >&3
 echo
 " | tee -a "$pf" | $vps_ssh_command $vps_ssh_connection_string >>"$pf" 2>&1
 	echo
 done
-echo
+if ! [[ -v pfiles ]]
+then
+	echo no uploads found
+	exit
+fi
+echo 'check-freenet-uploads session end
+' | tee -a "${!pfiles[@]}"
 # }}}
 
-declare -i parts_count parts_done
+declare -i parts_count
 declare status errors_found chk DataLength Succeeded Total LastProgress
 function print_part_stats {
 	local stats=
@@ -72,7 +81,6 @@ do
 	echo '##################################################'
 	echo "$pf"
 	parts_count=0
-	parts_done=0
 	status=freenet-upload
 	unset errors_found chk DataLength Succeeded Total LastProgress
 	exec 3<"$pf"
@@ -84,8 +92,11 @@ do
 			echo ---------- part $parts_count: ----------
 			unset errors_found chk DataLength Succeeded Total LastProgress
 
-		elif [[ $parts_count == 0 ]]; then
+		elif [[ $parts_count == 0 || ! "$x" ]]; then
 			continue
+
+		elif [[ "$x" == 'check-freenet-uploads session end' ]]; then
+			break
 
 		elif [[ "$x" =~ File:\ (.+) ]]; then
 			f="${BASH_REMATCH[1]}"
@@ -115,6 +126,7 @@ do
 			let statistics[chk]+=1
 			if grep -F "$chk" "$filelist_local" >/dev/null
 			then
+				let statistics[old-chk]+=1
 				status+=-chk
 				echo chk is already present in the file list
 
@@ -137,27 +149,43 @@ do
 			eval $x
 
 		elif [[ "$x" == PutSuccessful ]]; then
-			# TODO: ssh mv from uploads/ dir to completed/ dir and remove from freenet uploads
+			echo upload done!
+			{
+				$vps_ssh_command $vps_ssh_connection_string mv -v "$(printf %q "$f")" "$vps_completed_dir"
+				log package status: freenet-upload-$(name_md5)-done
+				echo remove from freenet uploads...
+				$vps_ssh_command $vps_ssh_connection_string <<eof
+set -e
+exec 3<>/dev/tcp/127.0.0.1/9481
+echo -e 'ClientHello\nName=pdb-3-check-freenet-uploads.sh\nExpectedVersion=2.0\nEndMessage' >&3
+echo -e 'RemoveRequest\nIdentifier=$(name_md5)\nGlobal=true\nEndMessage' >&3
+while [[ 1 ]]; do read -u3 -t3 x || break; echo "\$x"; lastx="\$x"; done
+[[ "\$lastx" == EndMessage ]] || { echo something was wrong with fcp: \$lastx; exit 1; }
+echo -e 'Disconnect\nEndMessage' >&3
+echo ok
+eof
+			} 2>&1 | tee -a "$pf"
 			let statistics[done]+=1
 			status+=-done
-			parts_done+=1
-			echo upload done!
 
 		fi
-	done # end "while read" loop }}}
+	done # end of "while read $pf" loop }}}
 	print_part_stats
-	if [[ $parts_count == $parts_done ]]
-	then
-		:
-		# TODO: ??? what to do if all parts done ???
-	fi
-	# TODO: calculate progress
 	echo '====== package status: ======'
 	log package status: $status | tee -a "$pf"
 	echo
 done
 # }}}
 
-declare -p statistics
-# TODO: print statistics
+function statnum {
+	echo $(( statistics[$1]+0 ))
+}
+echo "**************************************************
+script has finished successfully,
+**************************************************
+STATISTICS:
+$(statnum files) files of size $(( statistics[files-size]/1024/1024 )) Mb, $(statnum started) started, $(statnum chk) chk-s, $(statnum errors) errors, $(statnum fatal) fatal,
+during this check: $(statnum new-chk) new chk-s were added, $(statnum done) finished uploads were processed,
+unrecognized files: $(statnum unrecognized-files) of size $(( statistics[unrecognized-files-size]/1024/1024 )) Mb
+"
 
