@@ -28,6 +28,7 @@ then
 	error cd updir failed
 	exit 1
 fi
+# TODO: archive log files
 exec >>$logfile 2>&1
 echo -e '\n\n\n\n\n'
 echo ====================================================================================================
@@ -71,27 +72,71 @@ do
 	done < <(find . -type f -size +$file_max_size -name '*.7z')
 	# }}}
 
-	# start upload {{{
+	# check and start uploads {{{
 	while read f
 	do
 		name_md5=$(md5sum <<<"${f##*/}" | tr -d ' -')
 		log name_md5: "$f": $name_md5
-		if grep $name_md5 $tempfile
+		# get upload status: {{{
+		{ echo "
+ClientHello
+Name=pdb-freenet-upload-starter
+ExpectedVersion=2.0
+EndMessage
+
+GetRequestStatus
+Identifier=$name_md5
+Global=true
+EndMessage
+"; command sleep 3; echo -e '\nDisconnect\nEndMessage'; } | nc -v -w 30 $node_ip 9481 >$tempfile 2>&1 || { warning fcp conversation failed; cat $tempfile; continue; }
+		# }}}
+		if grep -C3 'PutFailed\|Fatal=true' $tempfile
 		then
-			log file is already present
+			echo
+			warning upload failed - restart
+			# remove upload and it will be restarted: {{{
+			{ echo "
+ClientHello
+Name=pdb-freenet-upload-starter
+ExpectedVersion=2.0
+EndMessage
+
+RemoveRequest
+Identifier=$name_md5
+Global=true
+EndMessage
+"; command sleep 3; echo -e '\nDisconnect\nEndMessage'; } | tee -a /dev/fd/2 | nc -v -w 30 $node_ip 9481 || warning fcp conversation failed
+			# }}}
+			continue 2
+		elif grep PersistentPut $tempfile
+		then
+			log file is already added
 			continue
 		fi
+		echo
 		log start upload "$f"
-		{
-			echo -e '\nClientHello\nName=pdb-freenet-upload-starter\nExpectedVersion=2.0\nEndMessage\n'
-			command sleep 1
-			# TODO: before ClientPut make TestDDARequest or check "Assume that upload DDA is allowed" is set,
-			echo -e "\nClientPut\nIdentifier=$name_md5\nFilename=$f"
-			echo -e 'UploadFrom=disk\nMaxRetries=10\nPriorityClass=4\nURI=CHK@\nDontCompress=true\nGlobal=true\nPersistence=forever\nEarlyEncode=true\nEndMessage\n'
-			command sleep 1
-			echo -e '\nDisconnect\nEndMessage\n'
-			command sleep 1
-		} | tee -a /dev/fd/2 | nc -v -w 30 $node_ip 9481 || warning fcp conversation failed
+		# start upload: {{{
+		# TODO: before ClientPut make TestDDARequest or check freenet.ini flag "Assume that upload DDA is allowed" is set,
+		{ echo "
+ClientHello
+Name=pdb-freenet-upload-starter
+ExpectedVersion=2.0
+EndMessage
+
+ClientPut
+Identifier=$name_md5
+Filename=$f
+UploadFrom=disk
+MaxRetries=10
+PriorityClass=4
+URI=CHK@
+DontCompress=true
+Global=true
+Persistence=forever
+EarlyEncode=true
+EndMessage
+"; command sleep 3; echo -e '\nDisconnect\nEndMessage'; } | tee -a /dev/fd/2 | nc -v -w 30 $node_ip 9481 || warning fcp conversation failed
+		# }}}
 		continue 2
 	done < <(find "$updir" -type f -name '*.7z*')
 	# }}}
