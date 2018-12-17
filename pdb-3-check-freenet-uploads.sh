@@ -35,7 +35,7 @@ do
 	let statistics[files]+=1
 	let statistics[files-size]+=$size
 
-	pf=$(find "$local_packages_dir" -name "${BASH_REMATCH[1]}-in-progress.txt")
+	pf=$(find "$local_packages_dir" -name "${BASH_REMATCH[1]}-in-progress.txt*")
 	[[ $pf ]] || error could not find progress file
 	log progress file: "$pf"
 	pfiles["$pf"]=$(( ${pfiles["$pf"]} + 1 ))
@@ -45,6 +45,7 @@ do
 	echo "--------------------------------------------------
 $(mydate) check-freenet-uploads session $session:
 File: $f" >>"$pf"
+	# TODO: fcp_script GetRequestStatus
 	echo "
 set -e
 exec 3<>/dev/tcp/127.0.0.1/9481
@@ -57,7 +58,7 @@ echo
 " | tee -a "$pf" | $vps_ssh_command $vps_ssh_connection_string >>"$pf" 2>&1
 	echo
 done
-if ! [[ -v pfiles ]]
+if (( ${#pfiles[*]} == 0 ))
 then
 	echo no uploads found
 	exit
@@ -118,7 +119,7 @@ do
 		elif perl -ne '!/^\w*Filename=/ && /error|PutFailed|Description/i || exit 1' <<<"$x"; then
 			errors_found=1
 			let statistics[errors]+=1
-			status+=-errors
+			status=${status//-errors/}-errors
 			echo error: "$x"
 
 		elif [[ "$x" =~ URI=(CHK@.{43},.{43},AAMC--8) && ! $chk ]]; then
@@ -154,6 +155,7 @@ do
 				$vps_ssh_command $vps_ssh_connection_string mv -v "$(printf %q "$f")" "$vps_completed_dir"
 				log package status: freenet-upload-$(name_md5)-done
 				echo remove from freenet uploads...
+				# TODO: fcp_script RemoveRequest ok
 				$vps_ssh_command $vps_ssh_connection_string <<eof
 set -e
 exec 3<>/dev/tcp/127.0.0.1/9481
