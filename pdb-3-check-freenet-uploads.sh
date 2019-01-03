@@ -20,7 +20,7 @@ declare -A pfiles statistics
 function name_md5 {
 	echo $(md5sum <<<"${f##*/}" | tr -d ' -')
 }
-$vps_ssh_command $vps_ssh_connection_string find "'$vps_uploads_dir'" -type f -name "'*.7z*'" -printf "'%s %p\n'" | sort -k2 | while read size f
+$vps_sshpass_command $vps_ssh_connection_string find "'$vps_uploads_dir'" -type f -name "'*.7z*'" -printf "'%s %p\n'" | sort -k2 | while read size f
 do
 	echo '@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@'
 	log file: "$f"
@@ -55,7 +55,7 @@ while [[ 1 ]]; do read -u3 -t3 x || break; echo \"\$x\"; lastx=\"\$x\"; done
 [[ \"\$lastx\" == EndMessage ]] || { echo something was wrong with fcp: \$lastx; exit 1; }
 echo -e 'Disconnect\nEndMessage' >&3
 echo
-" | tee -a "$pf" | $vps_ssh_command $vps_ssh_connection_string >>"$pf" 2>&1
+" | tee -a "$pf" | $vps_sshpass_command $vps_ssh_connection_string >>"$pf" 2>&1
 	echo
 done
 if (( ${#pfiles[*]} == 0 ))
@@ -134,12 +134,12 @@ do
 			else # update file list: {{{
 				echo new chk found
 				echo $(date +%T) calculating md5 "(can take long time ($(( DataLength/1024/1024 )) Mb))..."
-				md5=$($vps_ssh_command $vps_ssh_connection_string md5sum "$(printf %q "$f")" | cut -b 1-32)
+				md5=$($vps_sshpass_command $vps_ssh_connection_string md5sum "$(printf %q "$f")" | cut -b 1-32)
 				echo $(date +%T) ok, updating file list...
 				echo "# added at $(mydate) by $0" >>"$filelist_local"
 				echo -e "files+=(\n  $(printf %q "${f##*/}")  $DataLength  $md5\n  $chk\n)" | tee -a "$filelist_local"
 				echo >>"$filelist_local"
-				rsync --progress --compress --timeout=10 -e "$vps_ssh_command" "$filelist_local" "$vps_ssh_connection_string:$filelist_vps"
+				rsync --progress --compress --timeout=10 -e "$vps_sshpass_command" "$filelist_local" "$vps_ssh_connection_string:$filelist_vps"
 				echo $(date +%T) ok, filelist updated,
 				let statistics[new-chk]+=1
 				status+=-newchk
@@ -152,11 +152,11 @@ do
 		elif [[ "$x" == PutSuccessful ]]; then
 			echo upload done!
 			{
-				$vps_ssh_command $vps_ssh_connection_string mv -v "$(printf %q "$f")" "$vps_completed_dir"
+				$vps_sshpass_command $vps_ssh_connection_string mv -v "$(printf %q "$f")" "$vps_completed_dir"
 				log package status: freenet-upload-$(name_md5)-done
 				echo remove from freenet uploads...
 				# TODO: fcp_script RemoveRequest ok
-				$vps_ssh_command $vps_ssh_connection_string <<eof
+				$vps_sshpass_command $vps_ssh_connection_string <<eof
 set -e
 exec 3<>/dev/tcp/127.0.0.1/9481
 echo -e 'ClientHello\nName=pdb-3-check-freenet-uploads.sh\nExpectedVersion=2.0\nEndMessage' >&3

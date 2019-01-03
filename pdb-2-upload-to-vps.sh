@@ -31,7 +31,7 @@ echo
 read -s -p 'please enter ssh password: ' SSHPASS
 echo
 export SSHPASS
-$vps_ssh_command $vps_ssh_connection_string echo ssh connection ok || error ssh connection failed
+$vps_sshpass_command $vps_ssh_connection_string echo ssh connection ok || error ssh connection failed
 
 echo
 log 'calculating md5 (can take long time)...'
@@ -47,7 +47,7 @@ grep -m1 $file_md5 "${file%.7z}-in-progress.txt" || error md5 is absent in the p
 # simple workaround is to kill all rsync-s,
 # (maybe newer rsync versions will work as expected),
 function kill_rsyncs {
-	$vps_ssh_command $vps_ssh_connection_string killall -v rsync || [[ 1 ]]
+	$vps_sshpass_command $vps_ssh_connection_string killall -v rsync || [[ 1 ]]
 }
 # TODO: ??? "printf %q" instead of "ls --quoting-style" ???
 vpsfile="$vps_uploads_dir/$(cd "$(dirname "$file")"; ls --quoting-style shell "$(basename "$file")")"
@@ -57,7 +57,7 @@ do
 	kill_rsyncs
 	sleep 3
 	log package status: uploading-to-vps
-	rsync -vv --append-verify --outbuf=N --progress --timeout=30 -e "$vps_ssh_command" "$file" "$vps_ssh_connection_string:$vpsfile.part" && break
+	rsync -vv --append-verify --outbuf=N --progress --timeout=30 -e "$vps_sshpass_command" "$file" "$vps_ssh_connection_string:$vpsfile.part" && break
 	[[ $i == 10 ]] && error upload failed $i tries
 	warning rsync failed, retry in 1 minute...
 	sleep 60
@@ -68,9 +68,9 @@ kill_rsyncs
 # }}},
 
 log 'verifying md5 (can take long time)...'
-$vps_ssh_command $vps_ssh_connection_string md5sum "$vpsfile.part" | grep $file_md5 || error md5 check failed
+$vps_sshpass_command $vps_ssh_connection_string md5sum "$vpsfile.part" | grep $file_md5 || error md5 check failed
 log md5 is ok,
-$vps_ssh_command $vps_ssh_connection_string mv -v "$vpsfile{.part,}" || error rename .part failed
+$vps_sshpass_command $vps_ssh_connection_string mv -v "$vpsfile{.part,}" || error rename .part failed
 log rename is ok,
 echo
 echo file "\"$file\"" has been uploaded successfully,

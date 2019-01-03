@@ -6,11 +6,16 @@ copy_progress_files_to=/home/bdimych/tl-my/bdimych-text-git/3/mypdb/progress-fil
 
 saved_suffix=---[saved]
 
-vps_ssh_command='sshpass -e ssh -o ConnectTimeout=25 -p ???port???'
+vps_ssh_port=???
+vps_ssh_command="ssh -t -L 8888:localhost:8888 -p $vps_ssh_port"
+vps_sshpass_command="sshpass -e ssh -o ConnectTimeout=25 -p $vps_ssh_port"
 vps_ssh_connection_string=???user???@1.2.3.4
 
-vps_uploads_dir=/home/bdimych/frd/uploads
-vps_completed_dir=/home/bdimych/frd/completed
+vps_freenet_dir=/home/bdimych/freenet/freenet_1478
+vps_freenet_downloads_dir=$vps_freenet_dir/downloads
+vps_frd_dir=/home/bdimych/frd
+vps_uploads_dir=$vps_frd_dir/uploads
+vps_completed_dir=$vps_frd_dir/completed
 
 filelist_local=/home/bdimych/tl-my/bdimych-text-git/2/pdb/Storage/pdbs-180919-my-files.txt
 filelist_vps=/home/bdimych/pdbs-180919-my-files.txt
