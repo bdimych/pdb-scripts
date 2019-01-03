@@ -12,8 +12,8 @@
 
 set -e
 
-source "${0%/*}/pdb-config.sh"
-source "${0%/*}/pdb-lib.sh"
+source "$(dirname "$(realpath "$0")")/pdb-config.sh"
+source "$(dirname "$(realpath "$0")")/pdb-lib.sh"
 
 srcdir="${1%/}"
 ls -lh "$srcdir" || error usage: ${0##*/} source-directory

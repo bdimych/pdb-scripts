@@ -4,8 +4,8 @@
 
 set -e
 
-source "${0%/*}/pdb-config.sh"
-source "${0%/*}/pdb-lib.sh"
+source "$(dirname "$(realpath "$0")")/pdb-config.sh"
+source "$(dirname "$(realpath "$0")")/pdb-lib.sh"
 
 file="$1"
 [[ -f "$file" && -s "$file" && "$file" == *.7z ]] || error usage: ${0##*/} file.7z

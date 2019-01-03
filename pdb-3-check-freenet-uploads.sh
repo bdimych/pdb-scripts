@@ -4,8 +4,8 @@
 
 set -e -o pipefail
 
-source "${0%/*}/pdb-config.sh"
-source "${0%/*}/pdb-lib.sh"
+source "$(dirname "$(realpath "$0")")/pdb-config.sh"
+source "$(dirname "$(realpath "$0")")/pdb-lib.sh"
 
 read -s -p 'please enter ssh password: ' SSHPASS
 echo
