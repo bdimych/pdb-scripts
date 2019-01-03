@@ -1,6 +1,11 @@
 #!/bin/bash
 
+# TODO: description,
+
+set -e -o pipefail
+
 source "$(dirname "$(realpath "$0")")/pdb-config.sh"
+source "$(dirname "$(realpath "$0")")/pdb-lib.sh"
 
 $vps_ssh_command $vps_ssh_connection_string "
 $(declare -p \
