@@ -22,7 +22,7 @@ grep -m1 uploaded-to-vps "${file%.7z}-in-progress.txt" && error file is already 
 ls -lh "$file"
 echo "
 upload can take long time depending on file size and connection speed,
-(you can stop upload by pressing Ctrl+C and resume it by running the same command again),
+(you can stop it at any time by pressing Ctrl+C and resume it by running the same command again),
 "
 read -p 'start upload (y|N)? ' x
 [[ $x == y ]] || exit
@@ -73,7 +73,8 @@ log md5 is ok,
 $vps_sshpass_command $vps_ssh_connection_string mv -v "$vpsfile{.part,}" || error rename .part failed
 log rename is ok,
 echo
-echo file "\"$file\"" has been uploaded successfully,
+echo file has been uploaded successfully,
+echo now you can run pdb-3-check-freenet-uploads.sh
 # TODO: show memorable ascii art text box,
 # TODO: and print recommendations what to do next,
 echo
