@@ -19,10 +19,13 @@ srcdir="${1%/}"
 ls -lh "$srcdir" || error usage: ${0##*/} source-directory
 (( $(stat -c%s "$srcdir/pdb-message.txt") > 40 )) || error pdb-message.txt is absent or too short
 cd "$srcdir"
+echo ------------
+echo pdb-message:
+echo ------------
 cat pdb-message.txt
-packagename="$(basename "${PWD%"$saved_suffix"}")-$(date +%y%m%d-%H%M%S)"
+echo ------------
 
-echo
+packagename="$(basename "${PWD%"$saved_suffix"}")-$(date +%y%m%d-%H%M%S)"
 read -p "start make package \"$packagename\" (y|N) ? " x
 [[ $x == y ]] || exit
 echo
@@ -90,7 +93,7 @@ $(< ../pdb-message.txt)
 
 message for blockchains:
 -----
-$(ls --quoting-style shell "$packagename.7z")  $(stat -c%s "$packagename.7z")  $md5_archive
+$(ls --quoting-style shell "$packagename.7z") $(stat -c%s "$packagename.7z") $md5_archive
 add-chk-here
 $encrypted_msg
 -----
@@ -101,8 +104,9 @@ $encrypted_msg
 "
 # TODO: ??? above "printf %q" instead of "ls --quoting-style" ???
 # TODO: show memorable ascii art text box
-echo ok, package "\"$packagename\"" has been created,
-echo now you can run pdb-2-upload-to-vps.sh script.
+echo SUCCESS!
+echo package "\"$packagename\"" has been created,
+echo now you can run pdb-2-upload-to-vps.sh
 echo
 log package status: package-created
 echo
