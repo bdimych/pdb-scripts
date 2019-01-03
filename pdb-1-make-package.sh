@@ -71,7 +71,7 @@ package created at $(mydate):
 working directory: $PWD:
 $(
 du -sh .. --exclude packaged
-find .. -printf '%-10u %-10g %M %10s %TY-%Tm-%Td %.8TT %y%Y ' -and '(' -type l -printf '%p -> %l\n' -or -printf '%p\n' ')' | sort -k8
+find .. -printf '%-10u %-10g %M %10s %TY-%Tm-%Td %.8TT %y%Y ' -and '(' -type l -printf '%p -> %l\n' -or -printf '%p\n' ')' | sort -k5
 )
 
 ====================================================================================================
