@@ -16,7 +16,7 @@ source "$(dirname "$(realpath "$0")")/pdb-config.sh"
 source "$(dirname "$(realpath "$0")")/pdb-lib.sh"
 
 srcdir="${1%/}"
-ls -lh "$srcdir" || error usage: ${0##*/} source-directory
+ls -lhtr "$srcdir" || error usage: ${0##*/} source-directory
 (( $(stat -c%s "$srcdir/pdb-message.txt") > 40 )) || error pdb-message.txt is absent or too short
 cd "$srcdir"
 echo ------------
