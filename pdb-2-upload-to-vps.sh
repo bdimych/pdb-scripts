@@ -28,7 +28,7 @@ read -p 'start upload (y|N)? ' x
 [[ $x == y ]] || exit
 
 echo
-read -s -p 'please enter ssh password: ' SSHPASS
+read -s -p 'please enter your vps ssh password: ' SSHPASS
 echo
 export SSHPASS
 $vps_sshpass_command $vps_ssh_connection_string echo ssh connection ok || error ssh connection failed
@@ -49,8 +49,7 @@ grep -m1 $file_md5 "${file%.7z}-in-progress.txt" || error md5 is absent in the p
 function kill_rsyncs {
 	$vps_sshpass_command $vps_ssh_connection_string killall -v rsync || [[ 1 ]]
 }
-# TODO: ??? "printf %q" instead of "ls --quoting-style" ???
-vpsfile="$vps_uploads_dir/$(cd "$(dirname "$file")"; ls --quoting-style shell "$(basename "$file")")"
+vpsfile="$vps_uploads_dir/$(printf %q "${file##*/}")"
 trap 'error INT signal caught' INT
 for i in {1..10}
 do

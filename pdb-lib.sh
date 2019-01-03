@@ -20,3 +20,5 @@ function tee_progress {
 	fi
 }
 
+perl_strip_html='if (/Totals/..0) {s/<.*?>//g; s/^\s*//; s/\n/ /; s/(low)/\n\1/; print} END {print "\n"}'
+

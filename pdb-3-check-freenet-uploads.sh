@@ -7,9 +7,18 @@ set -e -o pipefail
 source "$(dirname "$(realpath "$0")")/pdb-config.sh"
 source "$(dirname "$(realpath "$0")")/pdb-lib.sh"
 
-read -s -p 'please enter ssh password: ' SSHPASS
+read -s -p 'please enter your vps ssh password: ' SSHPASS
 echo
 export SSHPASS
+
+echo freenet uploads:
+echo ----------------
+$vps_sshpass_command $vps_ssh_connection_string curl -Ss http://127.0.0.1:8888/uploads/ | perl -ne "$perl_strip_html"
+echo ------------------
+echo freenet downloads:
+echo ------------------
+$vps_sshpass_command $vps_ssh_connection_string curl -Ss http://127.0.0.1:8888/downloads/ | perl -ne "$perl_strip_html"
+echo
 
 session=$(date +%s)
 log check-freenet-uploads session $session
@@ -183,9 +192,8 @@ function statnum {
 	echo $(( statistics[$1]+0 ))
 }
 echo "**************************************************
-script has finished successfully,
-**************************************************
-STATISTICS:
+check uploads finished,
+statistics:
 $(statnum files) files of size $(( statistics[files-size]/1024/1024 )) Mb, $(statnum started) started, $(statnum chk) chk-s, $(statnum errors) errors, $(statnum fatal) fatal,
 during this check: $(statnum new-chk) new chk-s were added, $(statnum done) finished uploads were processed,
 unrecognized files: $(statnum unrecognized-files) of size $(( statistics[unrecognized-files-size]/1024/1024 )) Mb

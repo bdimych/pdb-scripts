@@ -8,7 +8,8 @@ $(declare -p \
 	vps_freenet_downloads_dir \
 	vps_frd_dir \
 	vps_uploads_dir \
-	vps_completed_dir | sed 's/--/-x/'
+	vps_completed_dir \
+	perl_strip_html | sed 's/--/-x/'
 )
 $(sed -ne '/^# === begin/,/^# === end/p' "$0")
 "
@@ -53,14 +54,13 @@ function p3 {
 	grep -i -P 'check file|err|warn' $vps_frd_dir/frd-log-*.txt | less
 }
 function p4 {
-	local x='if (/Totals/..0) {s/<.*?>//g; s/^\s*//; s/\n/ /; s/(low)/\n\1/; print}'
 	echo freenet uploads:
 	echo ----------------
-	curl http://127.0.0.1:8888/uploads/ | perl -ne "$x"
+	curl -Ss http://127.0.0.1:8888/uploads/ | perl -ne "$perl_strip_html"
 	echo ------------------
 	echo freenet downloads:
 	echo ------------------
-	curl http://127.0.0.1:8888/downloads/ | perl -ne "$x"
+	curl -Ss http://127.0.0.1:8888/downloads/ | perl -ne "$perl_strip_html"
 }
 ph
 export -f ph p{1..4}
