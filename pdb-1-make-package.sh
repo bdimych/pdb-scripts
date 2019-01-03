@@ -105,7 +105,8 @@ $encrypted_msg
 # TODO: ??? above "printf %q" instead of "ls --quoting-style" ???
 # TODO: show memorable ascii art text box
 echo SUCCESS!
-echo package "\"$packagename\"" has been created,
+echo package has been created:
+ls -lh --quoting-style shell "$(realpath "$packagename.7z")"
 echo now you can run pdb-2-upload-to-vps.sh
 echo
 log package status: package-created
