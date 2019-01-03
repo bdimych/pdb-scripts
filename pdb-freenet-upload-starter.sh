@@ -138,7 +138,7 @@ EndMessage
 "; command sleep 3; echo -e '\nDisconnect\nEndMessage'; } | tee -a /dev/fd/2 | nc -v -w 30 $node_ip 9481 || warning fcp conversation failed
 		# }}}
 		continue 2
-	done < <(find "$updir" -type f -name '*.7z*')
+	done < <(find "$updir" -type f -name '*.7z*' | grep -v '.7z.part$')
 	# }}}
 
 done
