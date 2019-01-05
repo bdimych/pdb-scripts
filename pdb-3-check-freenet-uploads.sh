@@ -70,6 +70,7 @@ done
 if (( ${#pfiles[*]} == 0 ))
 then
 	echo no uploads found
+	echo you can check statuses with pdb-4-list-statuses.sh
 	exit
 fi
 echo 'check-freenet-uploads session end
@@ -159,7 +160,7 @@ do
 			eval $x
 
 		elif [[ "$x" == PutSuccessful ]]; then
-			echo upload done!
+			echo $x - upload done!
 			{
 				$vps_sshpass_command $vps_ssh_connection_string mv -v "$(printf %q "$f")" "$vps_completed_dir"
 				log package status: freenet-upload-$(name_md5)-done
@@ -197,5 +198,7 @@ statistics:
 $(statnum files) files of size $(( statistics[files-size]/1024/1024 )) Mb, $(statnum started) started, $(statnum chk) chk-s, $(statnum errors) errors, $(statnum fatal) fatal,
 during this check: $(statnum new-chk) new chk-s were added, $(statnum done) finished uploads were processed,
 unrecognized files: $(statnum unrecognized-files) of size $(( statistics[unrecognized-files-size]/1024/1024 )) Mb
+
+after checking uploads you can check statuses with pdb-4-list-statuses.sh
 "
 
