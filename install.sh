@@ -6,7 +6,7 @@ if [[ $which_part == l ]]
 then
 	# install local part of scripts: {{{
 	set -x
-	sudo ln -sfv -t /usr/local/bin "$PWD"/pdb-{1..4}* pdb-vps-ssh.sh
+	sudo ln -sfv -t /usr/local/bin "$PWD"/{pdb-{1..4}*,pdb-vps-ssh.sh}
 	# }}}
 
 elif [[ $which_part == v ]]
