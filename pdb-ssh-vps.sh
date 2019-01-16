@@ -31,6 +31,7 @@ pdb commands:
 | p1 - completed downloads,         |
 | p2 - free/occupied space,         |
 | p3 - frd-log errors and warnings, |
+| p3% - with progress,              |
 | p4 - freenet uploads/downloads,   |
 +-----------------------------------+
 	"
@@ -54,10 +55,11 @@ function p2 {
 	done
 }
 function p3 {
-	echo show frd-log errors and warnings:
+	echo show frd-log errors and warnings$( [[ $1 ]] && echo ' and progress' ):
 	echo ---------------------------------
-	grep -i -P 'check file|err|warn' $vps_frd_dir/frd-log-*.txt | less
+	grep -i -P "check file|err|warn$( [[ $1 ]] && echo '|%$|ago$|download complete|start download' )" $vps_frd_dir/frd-log-*.txt | less
 }
+function p3% { p3 1; }
 function p4 {
 	echo freenet uploads:
 	echo ----------------
@@ -68,7 +70,7 @@ function p4 {
 	curl -Ss http://127.0.0.1:8888/downloads/ | perl -ne "$perl_strip_html"
 }
 ph
-export -f ph p{1..4}
+export -f ph p{1..4} p3%
 exec bash
 
 # === end === }}}
