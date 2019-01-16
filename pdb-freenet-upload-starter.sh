@@ -6,8 +6,8 @@
 # TODO: useful commands
 # }}}
 
-exec 33< "$(readlink -e "$0")" || { echo could not open lock descriptor; exit 1; }
-flock --exclusive --nonblock 33 || { echo script is already running; exit 1; }
+exec 33< "$(readlink -e "$0")" || { echo $(date) $0: could not open lock descriptor; exit 1; }
+flock --exclusive --nonblock 33 || { echo $(date) $0: script is already running; exit 1; }
 
 node_ip=127.0.0.1
 updir=/home/???/frd/uploads
