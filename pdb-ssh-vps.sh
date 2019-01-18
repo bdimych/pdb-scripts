@@ -63,11 +63,11 @@ function p3% { p3 1; }
 function p4 {
 	echo freenet uploads:
 	echo ----------------
-	curl -Ss http://127.0.0.1:8888/uploads/ | perl -ne "$perl_strip_html"
+	curl -Ss http://127.0.0.1:8888/uploads/?fproxyAdvancedMode=1 | perl -ne "$perl_strip_html"
 	echo ------------------
 	echo freenet downloads:
 	echo ------------------
-	curl -Ss http://127.0.0.1:8888/downloads/ | perl -ne "$perl_strip_html"
+	curl -Ss http://127.0.0.1:8888/downloads/?fproxyAdvancedMode=1 | perl -ne "$perl_strip_html"
 }
 ph
 export -f ph p{1..4} p3%

@@ -13,11 +13,11 @@ export SSHPASS
 
 echo freenet uploads:
 echo ----------------
-$vps_sshpass_command $vps_ssh_connection_string curl -Ss http://127.0.0.1:8888/uploads/ | perl -ne "$perl_strip_html"
+$vps_sshpass_command $vps_ssh_connection_string curl -Ss http://127.0.0.1:8888/uploads/?fproxyAdvancedMode=1 | perl -ne "$perl_strip_html"
 echo ------------------
 echo freenet downloads:
 echo ------------------
-$vps_sshpass_command $vps_ssh_connection_string curl -Ss http://127.0.0.1:8888/downloads/ | perl -ne "$perl_strip_html"
+$vps_sshpass_command $vps_ssh_connection_string curl -Ss http://127.0.0.1:8888/downloads/?fproxyAdvancedMode=1 | perl -ne "$perl_strip_html"
 echo
 
 session=$(date +%s)
