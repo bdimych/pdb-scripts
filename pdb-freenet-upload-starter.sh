@@ -43,7 +43,7 @@ do
 	echo ==================================================
 
 	# wget uploads {{{
-	if ! wget -O $tempfile http://$node_ip:8888/uploads/
+	if ! wget -O $tempfile http://$node_ip:8888/uploads/?fproxyAdvancedMode=1
 	then
 		warning wget uploads failed
 		continue
