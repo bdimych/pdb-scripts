@@ -25,7 +25,7 @@ echo ------------
 cat pdb-message.txt
 echo ------------
 
-packagename="$(basename "${PWD%"$saved_suffix"}")-$(date +%y%m%d-%H%M%S)"
+packagename="$(basename "${PWD%"$saved_suffix"}")-$(date +%y%m%d-%H%M)"
 read -p "start make package \"$packagename\" (y|N) ? " x
 [[ $x == y ]] || exit
 echo
@@ -76,28 +76,25 @@ find .. -printf '%-10u %-10g %M %10s %TY-%Tm-%Td %.8TT %y%Y ' -and '(' -type l -
 
 ====================================================================================================
 
-archive:
+A R C H I V E:
 $(ls -l "$packagename.7z"):
 -----
 $(7z l -p$password "$packagename.7z")
 
 ====================================================================================================
 
-pdb message:
+M E S S A G E:
 $(ls -l ../pdb-message.txt):
 -----
+pdb_message=\"\$(cat <<___eof___
 $(< ../pdb-message.txt)
------
-
-====================================================================================================
-
-message for blockchains:
------
-$(ls --quoting-style shell "$packagename.7z") $(stat -c%s "$packagename.7z") $md5_archive
-add-chk-here
-$encrypted_msg
------
-(you can check encrypted message md5sum: $md5_encrypted_msg)
+___eof___
+)\"
+pdb_message_encrypted=$encrypted_msg
+pdb_message_encrypted_md5=$md5_encrypted_msg
+archive_name=$(ls --quoting-style shell "$packagename.7z")
+archive_size=$(stat -c%s "$packagename.7z")
+archive_md5=$md5_archive
 
 ====================================================================================================
 }}}

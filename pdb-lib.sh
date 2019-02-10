@@ -7,12 +7,16 @@ function warning { echo -e $(mydate): WARNING: "$@"; }
 function tee_progress {
 	if [[ $2 == yes ]]
 	then
-		local f="${1%.7z}-in-progress.txt"
+		local pf
+		case "$1" in
+		*-in-progress.txt) pf="$1";;
+		*) pf="${1%.7z}-in-progress.txt";;
+		esac
 		if [[ $copy_progress_files_to ]]
 		then
-			tee -i -a "$f" "$copy_progress_files_to/${f##*/}"
+			tee -i -a "$pf" "$copy_progress_files_to/${pf##*/}"
 		else
-			tee -i -a "$f"
+			tee -i -a "$pf"
 		fi
 	else
 		echo -n | tee_progress "$1" yes || error tee_progress failure
