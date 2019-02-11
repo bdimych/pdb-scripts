@@ -17,20 +17,56 @@ echo
 echo xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 log $0 started
 
-echo
-log get message data from the beginning of the progress file:
+echo get message data...
 eval "$(sed -n -e '/^pdb_message=/,/^archive_md5=/p; /^archive_md5=/q' "$pf")"
-declare -p pdb_message pdb_message_encrypted pdb_message_encrypted_md5 archive_name archive_size archive_md5
+declare -p pdb_message pdb_message_encrypted pdb_message_encrypted_md5 archive_name archive_size archive_md5 >/dev/null
+echo ok
+
+echo get chk links...
+source "$filelist_local"
+frd_array="$(grep -Po 'CHK@.{43},.{43},AAMC--8' "$pf" | sort -u | while read chk
+do
+	found=
+	for (( i = 0; i < ${#files[*]}; i++ ))
+	do
+		if [[ "$chk" == "${files[i]}" ]]
+		then
+			echo "${files[i-3]} ${files[i-2]} ${files[i-1]} $chk"
+			found=1
+		fi
+	done
+	[[ $found ]] || error chk not found in the file list 1>&2
+done | sort)"
+[[ $frd_array ]] || error something went wrong
+echo ok
+
+echo "----- your pdb message: -----
+$pdb_message
+
+----- message for blockchain: -----
+$frd_array
+$pdb_message_encrypted
+"
+read -p 'do you want to make this message public (append password) (y|N)? ' x
+if [[ $x == y ]]
+then
+	warning YOU WANT TO MAKE THIS MESSAGE PUBLIC
+	warning YOU WANT TO MAKE THIS MESSAGE PUBLIC
+	warning YOU WANT TO MAKE THIS MESSAGE PUBLIC
+	read -p 'please type 5 first letters of encrypted message to confirm: ' x
+	[[ ${#x} == 5 && "$pdb_message_encrypted" =~ ^$x ]] || exit 1
+	append_password=1
+fi
 
 exit
 
 actions:
 OK -get messages plain and encrypted,
 	OK -in pdb-1 make assignments block appropriate for eval "$(sed -n -e '//,//p')",
--get all file parts CHK links,
--print both messages,
--ask if to publish or not to publish password,
-	-if yes then ask to confirm to print something more difficult than just y/n,
+OK -get all file parts CHK links,
+OK -print both messages,
+OK -ask if to publish or not to publish password,
+	OK -if yes then ask to confirm to print something more difficult than just y/n,
 -if publish then:
 	-get password,
 	-check 7z t -p$p $f
