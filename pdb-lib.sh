@@ -20,6 +20,7 @@ function tee_progress {
 		fi
 	else
 		echo -n | tee_progress "$1" yes || error tee_progress failure
+		trap 'sleep 1' EXIT
 		exec > >(tee_progress "$1" yes) 2>&1 || error tee_progress failure
 	fi
 }
