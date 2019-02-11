@@ -116,6 +116,7 @@ do
 		elif [[ "$x" == 'CodeDescription=No such identifier' ]]; then
 			let statistics[not-yet-added]+=1
 			status+=-pending
+			echo "$x"
 
 		elif [[ "$x" == 'Started=true' ]]; then
 			let statistics[started]+=1
