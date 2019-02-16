@@ -52,11 +52,10 @@ md5_archive=$(md5sum "$packagename.7z" | cut -b 1-32)
 :
 : ================================== encrypt and test message: ===================================== # {{{
 :
-openssl='openssl aes-256-cbc -nosalt'
-encrypted_msg="$(bzip2 -v <../pdb-message.txt | $openssl -pass pass:$password | base64 -w0)"
+encrypted_msg="$(bzip2 -v <../pdb-message.txt | $openssl_command -pass pass:$password | base64 -w0)"
 md5_encrypted_msg=$(md5sum <<<"$encrypted_msg" | tr -d ' -')
-diff -s --brief ../pdb-message.txt <(base64 -d <<<"$encrypted_msg" | $openssl -d -pass pass:xxx | bunzip2) && exit 1
-diff -s --brief ../pdb-message.txt <(base64 -d <<<"$encrypted_msg" | $openssl -d -pass pass:$password | bunzip2)
+diff -s --brief ../pdb-message.txt <(base64 -d <<<"$encrypted_msg" | $openssl_command -d -pass pass:xxx | bunzip2) && exit 1
+diff -s --brief ../pdb-message.txt <(base64 -d <<<"$encrypted_msg" | $openssl_command -d -pass pass:$password | bunzip2)
 
 set +x
 # }}}

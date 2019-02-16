@@ -22,3 +22,5 @@ filelist_vps=/home/bdimych/pdbs-180919-my-files.txt
 
 local_packages_dir=/home/bdimych/tl-big/MyPDB
 
+openssl_command='openssl aes-256-cbc -nosalt'
+
