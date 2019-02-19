@@ -26,21 +26,24 @@ exit
 function ph {
 	echo "
 pdb commands:
-+-----------------------------------+
-| ph - this help,                   |
-| p1 - completed downloads,         |
-| p2 - free/occupied space,         |
-| p3 - frd-log errors and warnings, |
-| p3% - with progress,              |
-| p4 - freenet uploads/downloads,   |
-+-----------------------------------+
++------------------------------------+
+| ph - this help,                    |
+| p1 - completed downloads,          |
+| p2 - free/occupied space,          |
+| p3 - frd-log errors and warnings,  |
+| p3% - with progress,               |
+| p4 - freenet uploads/downloads,    |
+| p5 - freenet node technical stats, |
++------------------------------------+
 	"
 }
+
 function p1 {
 	echo completed downloads sorted by date:
 	echo -----------------------------------
 	cat $vps_frd_dir/frd-completed.txt | perl -ne '/\((.+?)\) '\''(.+?)'\'' /; $x{$2}=$1; END {for (keys %x) {print "$x{$_} $_\n"}}' | sort
 }
+
 function p2 {
 	local y x="$vps_freenet_dir $vps_freenet_downloads_dir $vps_frd_dir $vps_uploads_dir $vps_completed_dir"
 	echo free space:
@@ -54,12 +57,14 @@ function p2 {
 		du -sh $y
 	done
 }
+
 function p3 {
 	echo show frd-log errors and warnings$( [[ $1 ]] && echo ' and progress' ):
 	echo ---------------------------------
 	grep -i -P "check file|err|warn$( [[ $1 ]] && echo '|%$|ago$|download complete|start download' )" $vps_frd_dir/frd-log-*.txt | less
 }
 function p3% { p3 1; }
+
 function p4 {
 	echo freenet uploads:
 	echo ----------------
@@ -69,8 +74,19 @@ function p4 {
 	echo ------------------
 	curl -Ss http://127.0.0.1:8888/downloads/?fproxyAdvancedMode=1 | perl -ne "$perl_strip_html"
 }
+
+function p5 {
+	curl http://127.0.0.1:8888/stats/?fproxyAdvancedMode=2 | perl -ne '
+		s/^\s+|<.+?>//g;
+		s/&nbsp;/ /g;
+		if (/opennetSizeEstimate|nodeUptime|^(Input|Output) Rate|Session Total|Payload Output|Global Total/) {print}
+	'
+}
+
+# TODO: less frd/frd-log-*.txt frd/uploads/pdb-freenet-upload-starter-log.txt - view in one terminal splitted - how? vim?
+
 ph
-export -f ph p{1..4} p3%
+export -f ph p{1..5} p3%
 exec bash
 
 # === end === }}}
