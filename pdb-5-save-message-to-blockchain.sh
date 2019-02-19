@@ -64,13 +64,57 @@ then
 	echo get and check password...
 	set -x
 	password=$(echo "${archive_name%.7z}" | bash "$password_script")
+	ls -lh "${pf%-in-progress.txt}.7z"
+	:
+	: testing archive can take long time...
 	7z t -p$password "${pf%-in-progress.txt}.7z" >/dev/null
+	: ok
+	:
 	diff -s <(echo "$pdb_message") <(base64 -d <<<"$pdb_message_encrypted" | $openssl_command -d -pass pass:$password | bunzip2)
 	set +x
 	echo ok
 fi
 
+echo "
+----- final confirmation: -----
+
+ok,
+so,
+You are going to save the message which You can see above to the ??? blockchain,
+
+$(
+if [[ $append_password ]]
+then
+	echo 'You also chose to publish the password for decryption so everyone will be able to read the message and view archive contents,'
+else
+	echo 'You did not choose to publish the password so Your information will stay private until You decide to give the password to someone else,'
+fi
+)
+
+and now You have the last chance to think well and make the final decision because after saving You will not be able to modify or delete information from blockchain,
+Your message will exist while human civilization will use this blockchain or keep it as historical artefact,
+
+so,
+"
+read -p '??? are You sure (y|N) ??? ' x
+[[ $x == y ]] || exit 1
+echo
+read -p "??? please type today's date exactly as on the following line: ???
+$(LANG=C date +'The year XXXX, %B, the day XX, %A')
+" x
+[[ "$x" == "$(LANG=C date +'The year %Y, %B, the day %d, %A')" ]] || exit 1
+echo
+read -p 'and the very final confirmation and this time is really 100% all done:
+are You ready to enter the history (y|N)?
+
+                    ' x
+[[ $x == y ]] || exit 1
+echo
+
+echo ok, let\'s do it,
+
 exit
+
 
 actions:
 OK -get messages plain and encrypted,
@@ -85,8 +129,8 @@ OK -if publish then:
 	OK -check encrypted message
 
 and that's it:
--ask one more time to confirm,
-	-print something more "epic" than simple confirmation because it will be saved forever without any chance to fix,
+OK -ask one more time to confirm,
+	OK -print something more "epic" than simple confirmation because it will be saved forever without any chance to fix,
 -run Mike's script - https://ethlance.com/#/job-proposal/1099
 -print transaction ID,
 -print new package status,
