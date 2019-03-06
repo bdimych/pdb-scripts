@@ -6,7 +6,8 @@ if [[ $which_part == l ]]
 then
 	# install local part of scripts: {{{
 	set -x
-	sudo ln -sfv -t /usr/local/bin "$PWD"/{pdb-{1..5}*,pdb-ssh-vps.sh}
+	# TODO: which 7z bzip2 openssl... etc check all required programs
+	sudo ln -sfv -t /usr/local/bin "$PWD"/{pdb-{1..6}*,pdb-ssh-vps.sh}
 	# }}}
 
 elif [[ $which_part == v ]]
