@@ -34,7 +34,7 @@ log "PWD is $PWD"
 echo
 
 password=$(echo "$packagename" | bash "$password_script")
-password_check || error password check failed
+check_password || error check password failed
 
 set -x
 : =================================== make and test archive: ======================================= # {{{
