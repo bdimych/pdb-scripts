@@ -25,4 +25,5 @@ local_packages_dir=/home/bdimych/tl-big/MyPDB
 openssl_command='openssl aes-256-cbc -nosalt'
 
 save_message_script="$(dirname "$(realpath "$0")")/pdb-save-message.sh"
+blockchain_name=Ethereum
 
