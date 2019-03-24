@@ -17,6 +17,8 @@ $(declare -p \
 	perl_strip_html | sed 's/--/-x/'
 )
 $(sed -ne '/^# === begin/,/^# === end/p' "$0")
+[[ ${#*} == 0 ]] && exec bash
+$*
 "
 
 exit
@@ -87,8 +89,6 @@ function p5 {
 
 ph
 export -f ph p{1..5} p3%
-exec bash
 
 # === end === }}}
-
 
