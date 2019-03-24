@@ -5,6 +5,7 @@
 source "$(dirname "$(realpath "$0")")/pdb-config.sh"
 source "$(dirname "$(realpath "$0")")/pdb-lib.sh"
 
+# TODO: echo "$local_packages_dir"
 find "$local_packages_dir" -name '*in-progress.txt*' | while read pf
 do
 	f="${pf%-in-progress.txt*}.7z"
@@ -17,7 +18,7 @@ do
 		cat <<eof
 +----------
 | $x
-| freenet upload done and now you can run: pdb-5-save-message-to-blockchain.sh $(printf %q "${BASH_REMATCH[2]}")
+| freenet upload done, you can run: pdb-5-save-message-to-blockchain.sh $(printf %q "${BASH_REMATCH[2]}")
 +----------
 eof
 	else
