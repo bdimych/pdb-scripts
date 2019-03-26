@@ -16,6 +16,7 @@ else
 fi
 [[ $pf ]] || error progress file not found
 grep -m1 'package status: message-saved' "$pf" && error message is already saved
+# TODO: check if package has been uploaded and if not then ask user to confirm to save now or postpone, (grep freenet-upload(-started-chk-done)+)
 
 log progress file: "$pf"
 tee_progress "$pf"
@@ -60,11 +61,12 @@ read -p 'do you want to make this message public (append the password) (y|N)? ' 
 if [[ $x == y ]]
 then
 	echo are you really sure you want to make this message public?
-	read -p 'please type 5 first letters of encrypted message to confirm: ' x
-	[[ ${#x} == 5 && "$pdb_message_encrypted" =~ ^$x ]] || exit 1
+	read -p 'please type 2 last letters of encrypted message: ' x
+	[[ ${#x} == 2 && "$pdb_message_encrypted" =~ $x$ ]] || { echo wrong answer $x; exit 1; }
+	echo ok,
 	echo
 	append_password=1
-	echo get and check password...
+	echo ----- get and check password: -----
 	set -x
 	password=$(echo "${archive_name%.7z}" | bash "$password_script")
 	ls -lh "${pf%-in-progress.txt}.7z"
@@ -77,43 +79,48 @@ then
 	message_for_blockchain+="
 $password"
 	set +x
-	echo ok
+	echo ok,
+else
+	echo no,
 fi
 
 echo "
------ final confirmation: -----
+----- CONFIRMATION: -----
 
 ok,
 so,
+
 You are going to save your message to the $blockchain_name blockchain,
 
 $(
 if [[ $append_password ]]
 then
-	echo 'you also chose to publish the password for decryption so everyone will be able to read the message and view archive contents,'
+	echo 'you also have chosen to PUBLISH the password so everyone will be able to read the message and view archive contents,'
 else
-	echo 'you chose not to publish the password so the message will stay private until you decide to give the password to someone else,'
+	echo 'you have chosen NOT to publish the password so the message will remain private until you decide to give the password to someone else,'
 fi
 )
 
-and now you have the last chance to think well and make final decision because !AFTER SAVING INFORMATION TO THE BLOCKCHAIN YOU WILL NOT BE ABLE TO MODIFY OR DELETE IT!,
-it will exist while human civilization will use this blockchain or will keep it as historical artefact,
+and now you have the last chance to think well and to make the final decision because !AFTER SAVING INFORMATION TO THE BLOCKCHAIN NOBODY WILL BE ABLE TO MODIFY OR DELETE IT!,
+your message will exist while human civilization will use this blockchain or will keep it as historical artefact,
 
 so,
 "
+function notyet { echo not yet.; exit 1; }
 read -p '!!! are you sure (y|N) ??? ' x
-[[ $x == y ]] || exit 1
-echo
+[[ $x == y ]] || notyet
+echo yes,
 read -p "!!! please type today's date exactly as on the following line:
 $(LANG=C date +'The year XXXX, %B, the day XX, %A')
 " x
-[[ "$x" == "$(LANG=C date +'The year %Y, %B, the day %d, %A')" ]] || exit 1
-echo
+[[ "$x" == "$(LANG=C date +'The year %Y, %B, the day %d, %A')" ]] || notyet
+echo ok,
 read -p 'and the very final confirmation:
 save message for history (y|N)?
 
               ' x
-[[ $x == y ]] || exit 1
+[[ $x == y ]] || notyet
+echo yes,
 echo
 
 echo ok, "let's" do it:
@@ -123,6 +130,9 @@ log ===== save-message-script end =====
 
 # TODO: print big ascii art banner
 echo okay, the message has been saved,
+echo
 log package status: message-saved
-
+echo
+echo now you can run pdb-6-check-and-mark-package-saved.sh $(printf %q "${pf##*/}")
+echo
 
