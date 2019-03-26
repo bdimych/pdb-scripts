@@ -5,7 +5,7 @@
 source "$(dirname "$(realpath "$0")")/pdb-config.sh"
 source "$(dirname "$(realpath "$0")")/pdb-lib.sh"
 
-# TODO: echo "$local_packages_dir"
+echo "local_packages_dir is $local_packages_dir"
 find "$local_packages_dir" -name '*in-progress.txt*' | while read pf
 do
 	f="${pf%-in-progress.txt*}.7z"
