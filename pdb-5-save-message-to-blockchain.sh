@@ -15,14 +15,15 @@ else
 	pf="$(find "$local_packages_dir" -name "$1")"
 fi
 [[ $pf ]] || error progress file not found
-grep -m1 'package status: message-saved' "$pf" && error message is already saved
-# TODO: check if package has been uploaded and if not then ask user to confirm to save now or postpone, (grep freenet-upload(-started-chk-done)+)
 
 log progress file: "$pf"
 tee_progress "$pf"
 echo
 echo xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 log $0 started
+
+grep -m1 'package status: message-saved' "$pf" && error message is already saved
+# TODO: check if package has been uploaded and if not then ask user to confirm to save now or postpone, (grep freenet-upload(-started-chk-done)+)
 
 echo get message data...
 eval "$(sed -n -e '/^pdb_message=/,/^archive_md5=/p; /^archive_md5=/q' "$pf")"
