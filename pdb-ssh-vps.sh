@@ -7,6 +7,7 @@ set -e -o pipefail
 source "$(dirname "$(realpath "$0")")/pdb-config.sh"
 source "$(dirname "$(realpath "$0")")/pdb-lib.sh"
 
+echo "$vps_ssh_command $vps_ssh_connection_string"
 $vps_ssh_command $vps_ssh_connection_string "
 $(declare -p \
 	vps_freenet_dir \
