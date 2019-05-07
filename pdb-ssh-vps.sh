@@ -88,6 +88,8 @@ function p5 {
 
 # TODO: less frd/frd-log-*.txt frd/uploads/pdb-freenet-upload-starter-log.txt - view in one terminal splitted - how? vim?
 
+# TODO: statistics about files - total count, total size, too-long-ago count,
+
 ph
 export -f ph p{1..5} p3%
 

@@ -200,6 +200,6 @@ $(statnum files) files of size $(( statistics[files-size]/1024/1024 )) Mb, $(sta
 during this check: $(statnum new-chk) new chk-s were added, $(statnum done) finished uploads were processed,
 unrecognized files: $(statnum unrecognized-files) of size $(( statistics[unrecognized-files-size]/1024/1024 )) Mb
 
-after checking uploads you can check statuses with pdb-4-list-statuses.sh
+after uploads finish you might want to run pdb-4-list-statuses.sh
 "
 

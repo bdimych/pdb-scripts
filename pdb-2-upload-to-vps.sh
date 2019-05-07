@@ -22,7 +22,7 @@ grep -m1 uploaded-to-vps "${file%.7z}-in-progress.txt" && error file is already 
 ls -lh "$file"
 echo "
 upload can take long time depending on file size and connection speed,
-(you can stop it at any time by pressing Ctrl+C and resume it by running the same command again),
+(you can stop it by pressing Ctrl+C and later resume it by running the same command again),
 "
 read -p 'start upload (y|N)? ' x
 [[ $x == y ]] || exit
@@ -38,6 +38,7 @@ log 'calculating md5 (can take long time)...'
 file_md5=$(md5sum "$file" | cut -b 1-32)
 grep $file_md5 "$filelist_local" && error md5 $file_md5 is already present in the local file list
 grep -m1 $file_md5 "${file%.7z}-in-progress.txt" || error md5 is absent in the progress file
+echo ok,
 
 # }}},
 
@@ -57,7 +58,7 @@ do
 	sleep 3
 	log package status: uploading-to-vps
 	rsync -vv --append-verify --outbuf=N --progress --timeout=30 -e "$vps_sshpass_command" "$file" "$vps_ssh_connection_string:$vpsfile.part" && break
-	[[ $i == 10 ]] && error upload failed $i tries
+	[[ $i == 10 ]] && error upload failed $i retries
 	warning rsync failed, retry in 1 minute...
 	sleep 60
 done
@@ -73,10 +74,11 @@ $vps_sshpass_command $vps_ssh_connection_string mv -v "$vpsfile{.part,}" || erro
 log rename is ok,
 echo
 echo file has been uploaded successfully,
-echo now you can run pdb-3-check-freenet-uploads.sh
 # TODO: show memorable ascii art text box,
 # TODO: and print recommendations what to do next,
 echo
 log package status: uploaded-to-vps
+echo
+echo now you can run pdb-3-check-freenet-uploads.sh
 echo
 

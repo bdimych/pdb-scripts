@@ -103,8 +103,9 @@ archive_md5=$md5_archive
 echo SUCCESS!
 echo package has been created:
 ls -lh --quoting-style shell "$(realpath "$packagename.7z")"
-echo now you can run pdb-2-upload-to-vps.sh
 echo
 log package status: package-created
+echo
+echo now you can run pdb-2-upload-to-vps.sh
 echo
 
