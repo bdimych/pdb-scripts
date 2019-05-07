@@ -19,6 +19,7 @@ do
 ┌─────────
 │ $x
 │ freenet upload done, you can run: pdb-5-save-message-to-blockchain.sh $(printf %q "${BASH_REMATCH[2]}")
+└─────────
 eof
 	elif [[ "$x" =~ message-saved:\ (.*)\ \( ]]
 	then
@@ -26,6 +27,7 @@ eof
 ╔═════════
 ║ $x
 ║ message is saved in the blockchain, you can run: pdb-6-check-and-mark-package-saved.sh $(printf %q "${BASH_REMATCH[1]}")
+╚═════════
 eof
 	else
 		echo "$x"
