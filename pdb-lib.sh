@@ -4,6 +4,14 @@ function log { echo -e $(mydate): LOG: "$@"; }
 function error { echo -e $(mydate): ERROR: "$@"; exit 1; }
 function warning { echo -e $(mydate): WARNING: "$@"; }
 
+function _tee_progress {
+	if [[ $copy_progress_files_to ]]
+	then
+		tee -i -a "$pf" "$copy_progress_files_to/${pf##*/}"
+	else
+		tee -i -a "$pf"
+	fi
+}
 function tee_progress {
 	if [[ $2 == yes ]]
 	then
@@ -12,12 +20,7 @@ function tee_progress {
 		*-in-progress.txt) pf="$1";;
 		*) pf="${1%.7z}-in-progress.txt";;
 		esac
-		if [[ $copy_progress_files_to ]]
-		then
-			tee -i -a "$pf" "$copy_progress_files_to/${pf##*/}"
-		else
-			tee -i -a "$pf"
-		fi
+		_tee_progress
 	else
 		echo -n | tee_progress "$1" yes || error tee_progress failure
 		trap 'sleep 1' EXIT # for tee delay

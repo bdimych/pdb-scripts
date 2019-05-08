@@ -23,8 +23,8 @@ function ask_to_repeat_check {
 }
 # }}}
 
-                              while [[ 1 ]]
-                              do
+               while [[ 1 ]]
+               do
 
 echo ----------------
 echo freenet uploads:
@@ -69,7 +69,7 @@ do
 
 	echo "--------------------------------------------------
 $(mydate) check-freenet-uploads session $session:
-File: $f" >>"$pf"
+File: $f" | _tee_progress >/dev/null
 	# TODO: fcp_script GetRequestStatus
 	echo "
 set -e
@@ -80,7 +80,8 @@ while [[ 1 ]]; do read -u3 -t3 x || break; echo \"\$x\"; lastx=\"\$x\"; done
 [[ \"\$lastx\" == EndMessage ]] || { echo something was wrong with fcp: \$lastx; exit 1; }
 echo -e 'Disconnect\nEndMessage' >&3
 echo
-" | tee -a "$pf" | $vps_sshpass_command $vps_ssh_connection_string >>"$pf" 2>&1
+" | _tee_progress | $vps_sshpass_command $vps_ssh_connection_string 2>&1 | _tee_progress >/dev/null
+	echo check-freenet-uploads session end | _tee_progress
 	echo
 done
 if (( ${#pfiles[*]} == 0 ))
@@ -88,8 +89,6 @@ then
 	echo no uploads found
 	ask_to_repeat_check
 fi
-echo 'check-freenet-uploads session end
-' | tee -a "${!pfiles[@]}"
 # }}}
 
 # ---
@@ -106,6 +105,7 @@ function print_part_stats {
 }
 for pf in "${!pfiles[@]}" # {{{
 do
+               { # 2>&1 | _tee_progress
 	echo '##################################################'
 	echo "$pf"
 	parts_count=0
@@ -179,12 +179,11 @@ do
 
 		elif [[ "$x" == PutSuccessful ]]; then
 			echo $x - upload done!
-			{
-				$vps_sshpass_command $vps_ssh_connection_string mv -v "$(printf %q "$f")" "$vps_completed_dir"
-				log package status: freenet-upload-$(name_md5)-done
-				echo remove from freenet uploads...
-				# TODO: fcp_script RemoveRequest ok
-				$vps_sshpass_command $vps_ssh_connection_string <<eof
+			$vps_sshpass_command $vps_ssh_connection_string mv -v "$(printf %q "$f")" "$vps_completed_dir"
+			log package status: freenet-upload-$(name_md5)-done
+			echo remove from freenet uploads...
+			# TODO: fcp_script RemoveRequest ok
+			$vps_sshpass_command $vps_ssh_connection_string <<eof
 set -e
 exec 3<>/dev/tcp/127.0.0.1/9481
 echo -e 'ClientHello\nName=pdb-3-check-freenet-uploads.sh\nExpectedVersion=2.0\nEndMessage' >&3
@@ -194,7 +193,6 @@ while [[ 1 ]]; do read -u3 -t3 x || break; echo "\$x"; lastx="\$x"; done
 echo -e 'Disconnect\nEndMessage' >&3
 echo ok
 eof
-			} 2>&1 | tee -a "$pf"
 			let statistics[done]+=1
 			status+=-done
 
@@ -202,8 +200,9 @@ eof
 	done # end of "while read $pf" loop }}}
 	print_part_stats
 	echo '====== package status: ======'
-	log package status: $status | tee -a "$pf"
+	log package status: $status
 	echo
+               } 2>&1 | _tee_progress
 done
 # }}}
 
@@ -219,7 +218,7 @@ unrecognized files: $(statnum unrecognized-files) of size $(( statistics[unrecog
 
 ask_to_repeat_check
 
-                              done
+               done
 
 echo '(after checking uploads you might want to run pdb-4-list-statuses.sh)'
 echo
