@@ -6,8 +6,10 @@
 # TODO: useful commands
 # }}}
 
-exec 33> /tmp/${0##*/}.lock || { echo $(date) $0: could not open lock descriptor; exit 1; }
-flock --exclusive --nonblock 33 || { echo $(date) $0: script is already running; exit 1; }
+lockname=/tmp/${0##*/}.lock
+[[ -e $lockname ]] && { echo $(date) $0: script is already running; exit 1; }
+mkdir -v $lockname || { echo $(date) $0: could not create lock directory; exit 1; }
+trap "rmdir -v $lockname" EXIT
 
 node_ip=127.0.0.1
 updir=/home/???/frd/uploads
