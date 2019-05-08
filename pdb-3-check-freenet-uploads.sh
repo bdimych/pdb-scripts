@@ -11,9 +11,22 @@ read -s -p 'please enter your vps ssh password: ' SSHPASS
 echo
 export SSHPASS
 
-					while [[ 1 ]]
-					do
+# functions: {{{
+function ask_to_repeat_check {
+	echo
+	echo ====================================================================================================
+	read -p 'repeat check (y|N)? ' x
+	[[ $x == y ]] && echo yes || echo no
+	echo ====================================================================================================
+	echo
+	[[ $x == y ]] && continue || break
+}
+# }}}
 
+                              while [[ 1 ]]
+                              do
+
+echo ----------------
 echo freenet uploads:
 echo ----------------
 $vps_sshpass_command $vps_ssh_connection_string curl -Ss http://127.0.0.1:8888/uploads/?fproxyAdvancedMode=1 | perl -ne "$perl_strip_html"
@@ -73,10 +86,7 @@ done
 if (( ${#pfiles[*]} == 0 ))
 then
 	echo no uploads found
-	echo
-	echo '(after checking uploads you might want to run pdb-4-list-statuses.sh)'
-	echo
-	exit
+	ask_to_repeat_check
 fi
 echo 'check-freenet-uploads session end
 ' | tee -a "${!pfiles[@]}"
@@ -205,18 +215,12 @@ check uploads finished,
 statistics:
 $(statnum files) files of size $(( statistics[files-size]/1024/1024 )) Mb, $(statnum started) started, $(statnum chk) chk-s, $(statnum errors) errors, $(statnum fatal) fatal,
 during this check: $(statnum new-chk) new chk-s were added, $(statnum done) finished uploads were processed,
-unrecognized files: $(statnum unrecognized-files) of size $(( statistics[unrecognized-files-size]/1024/1024 )) Mb
-"
+unrecognized files: $(statnum unrecognized-files) of size $(( statistics[unrecognized-files-size]/1024/1024 )) Mb"
 
-echo ----------------------------------------------------------------------------------------------------
-read -p 'repeat check (y|N)? ' x
-echo ----------------------------------------------------------------------------------------------------
-[[ $x == y ]] || { echo no; break; }
-echo
+ask_to_repeat_check
 
-					done
+                              done
 
-echo
 echo '(after checking uploads you might want to run pdb-4-list-statuses.sh)'
 echo
 
