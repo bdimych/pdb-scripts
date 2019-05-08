@@ -8,11 +8,14 @@ source "$(dirname "$(realpath "$0")")/pdb-config.sh"
 source "$(dirname "$(realpath "$0")")/pdb-lib.sh"
 
 [[ $1 ]] || error usage: ${0##*/} progress-file.txt
-if [[ -f "$1" && "$1" =~ -in-progress.txt$ ]]
+if [[ "$1" =~ -in-progress.txt$ ]]
 then
-	pf="$1"
-else
-	pf="$(find "$local_packages_dir" -name "$1")"
+	if [[ -f "$1" ]]
+	then
+		pf="$1"
+	else
+		pf="$(find "$local_packages_dir" -name "$1")"
+	fi
 fi
 [[ $pf ]] || error progress file not found
 
