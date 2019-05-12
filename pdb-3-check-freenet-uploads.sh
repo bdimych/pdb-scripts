@@ -29,11 +29,11 @@ function ask_to_repeat_check {
 echo ----------------
 echo freenet uploads:
 echo ----------------
-$vps_sshpass_command $vps_ssh_connection_string curl -Ss http://127.0.0.1:8888/uploads/?fproxyAdvancedMode=1 | perl -ne "$perl_strip_html"
+$vps_sshpass_command $vps_ssh_connection_string curl -Ss http://127.0.0.1:8888/uploads/?fproxyAdvancedMode=1 | perl -ne "$perl_print_downloads_in_plain_text"
 echo ------------------
 echo freenet downloads:
 echo ------------------
-$vps_sshpass_command $vps_ssh_connection_string curl -Ss http://127.0.0.1:8888/downloads/?fproxyAdvancedMode=1 | perl -ne "$perl_strip_html"
+$vps_sshpass_command $vps_ssh_connection_string curl -Ss http://127.0.0.1:8888/downloads/?fproxyAdvancedMode=1 | perl -ne "$perl_print_downloads_in_plain_text"
 echo
 
 session=$(date +%s)

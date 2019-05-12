@@ -15,7 +15,7 @@ $(declare -p \
 	vps_frd_dir \
 	vps_uploads_dir \
 	vps_completed_dir \
-	perl_strip_html | sed 's/--/-x/'
+	perl_print_downloads_in_plain_text | sed 's/--/-x/'
 )
 $(sed -ne '/^# === begin/,/^# === end/p' "$0")
 [[ ${#*} == 0 ]] && exec bash
@@ -71,11 +71,11 @@ function p3% { p3 1; }
 function p4 {
 	echo freenet uploads:
 	echo ----------------
-	curl -Ss http://127.0.0.1:8888/uploads/?fproxyAdvancedMode=1 | perl -ne "$perl_strip_html"
+	curl -Ss http://127.0.0.1:8888/uploads/?fproxyAdvancedMode=1 | perl -ne "$perl_print_downloads_in_plain_text"
 	echo ------------------
 	echo freenet downloads:
 	echo ------------------
-	curl -Ss http://127.0.0.1:8888/downloads/?fproxyAdvancedMode=1 | perl -ne "$perl_strip_html"
+	curl -Ss http://127.0.0.1:8888/downloads/?fproxyAdvancedMode=1 | perl -ne "$perl_print_downloads_in_plain_text"
 }
 
 function p5 {

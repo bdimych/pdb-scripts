@@ -28,5 +28,5 @@ function tee_progress {
 	fi
 }
 
-perl_strip_html='if (/Totals/..0) {s/^\s*//; s/\n/ /; /identifier-/ && s/^/\n/; s/<.*?>//g; print} END {print "\n"}'
+perl_print_downloads_in_plain_text='if (/<div id="content">/../priority_bottom/) {s/^\s*//; s/\n/ /; /identifier-/ && s/^/\n/; s/<.*?>//g; print} END {print "\n"}'
 
