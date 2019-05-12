@@ -21,6 +21,20 @@ function ask_to_repeat_check {
 	echo
 	[[ $x == y ]] && continue || break
 }
+function name_md5 {
+	echo $(md5sum <<<"${f##*/}" | tr -d ' -')
+}
+function print_part_stats {
+	local stats=
+	[[ $DataLength ]] && stats+="size: $(( DataLength/1024/1024 )) Mb; "
+	[[ $Succeeded && $Total ]] && stats+="ready: $(( Succeeded*100/Total ))%; "
+	[[ $LastProgress ]] && stats+="LastProgress: $(( ($(date +%s) - LastProgress/1000)/60 )) minutes ago;"
+	[[ $stats ]] && echo "part_stats: $stats"
+	return 0
+}
+function statnum {
+	echo $(( statistics[$1]+0 ))
+}
 # }}}
 
                while [[ 1 ]]
@@ -42,9 +56,6 @@ shopt -s lastpipe
 declare -A pfiles=() statistics=()
 
 # get current uploads information: {{{
-function name_md5 {
-	echo $(md5sum <<<"${f##*/}" | tr -d ' -')
-}
 $vps_sshpass_command $vps_ssh_connection_string find "'$vps_uploads_dir'" -type f -name "'*.7z*'" -printf "'%s %p\n'" | sort -k2 | while read size f
 do
 	echo '@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@'
@@ -95,14 +106,6 @@ fi
 
 declare -i parts_count
 declare status errors_found chk DataLength Succeeded Total LastProgress
-function print_part_stats {
-	local stats=
-	[[ $DataLength ]] && stats+="size: $(( DataLength/1024/1024 )) Mb; "
-	[[ $Succeeded && $Total ]] && stats+="ready: $(( Succeeded*100/Total ))%; "
-	[[ $LastProgress ]] && stats+="LastProgress: $(( ($(date +%s) - LastProgress/1000)/60 )) minutes ago;"
-	[[ $stats ]] && echo "part_stats: $stats"
-	return 0
-}
 for pf in "${!pfiles[@]}" # {{{
 do
                { # 2>&1 | _tee_progress
@@ -206,9 +209,6 @@ eof
 done
 # }}}
 
-function statnum {
-	echo $(( statistics[$1]+0 ))
-}
 echo "**************************************************
 check uploads finished,
 statistics:
